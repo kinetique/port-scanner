@@ -1,0 +1,15 @@
+#ifndef ARG_PARSE_H
+#define ARG_PARSE_H
+
+#include <stddef.h>
+
+#define ARGPARSE_OPT_BOOLEAN 0
+#define ARGPARSE_OPT_BIT 1
+#define ARGPARSE_OPT_STRING 2
+#define ARGPARSE_OPT_INT 3
+#define ARGPARSE_OPT_FLOAT 4
+#define ARGPARSE_OPT_GROUP 5
+#define ARGPARSE_OPT_END 6
+
+
+#endif // ARG_PARSE_H
