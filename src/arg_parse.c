@@ -72,3 +72,26 @@ int argparse_help_cb(struct argparse *self,
     return 0;
 }
 
+int argparse_init(struct argparse *self, struct argparse_option *options,
+                  const char *const *usages, int flags)
+{
+    self->options = options;
+    self->usages = usages;
+    self->flags = flags;
+    self->description = NULL;
+    self->epilog = NULL;
+    self->argc = 0;
+    self->argv = NULL;
+    self->out = NULL;
+    self->cpidx = 0;
+    self->optvalue = NULL;
+    return 0;
+}
+
+void argparse_describe(struct argparse *self,
+                       const char *description,
+                       const char *epilog)
+{
+    self->description = description;
+    self->epilog = epilog;
+}
