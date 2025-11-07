@@ -7,9 +7,8 @@
 #define ARGPARSE_OPT_BIT 1
 #define ARGPARSE_OPT_STRING 2
 #define ARGPARSE_OPT_INT 3
-#define ARGPARSE_OPT_FLOAT 4
-#define ARGPARSE_OPT_GROUP 5
-#define ARGPARSE_OPT_END 6
+#define ARGPARSE_OPT_GROUP 4
+#define ARGPARSE_OPT_END 5
 
 #define ARGPARSE_OPT_NONEG (1<<0)
 
@@ -69,7 +68,7 @@ struct argparse {
 #define OPT_CUSTOM(s,l,ptr,type_,data_,help_,flags_,cb_) \
     { (s), (l), (void *)(ptr), (type_), (data_), (help_), (flags_), (cb_) }
 
-    
+
 int argparse_init(struct argparse *self, struct argparse_option *options,
                   const char *const *usages, int flags);
 
