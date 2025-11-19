@@ -65,9 +65,6 @@ struct argparse {
 #define OPT_CUSTOM(s,l,ptr,type_,data_,help_,flags_,cb_) \
     { (s), (l), (void *)(ptr), (type_), (data_), (help_), (flags_), (cb_) }
 
-#define OPT_END() \
-    { 0, NULL, NULL, ARGPARSE_OPT_END, 0, NULL, 0, NULL }
-
 int argparse_init(struct argparse *self, struct argparse_option *options,
                   const char *const *usages, int flags);
 

@@ -15,7 +15,6 @@ int main(int argc, const char **argv) {
     OPT_END()
 };
 
-
     const char *usages[] = {"prog [options]", NULL};
 
     struct argparse a;
