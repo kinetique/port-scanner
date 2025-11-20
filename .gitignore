@@ -1,1 +1,14 @@
 .vscode/
+
+.DS_Store
+._*
+
+# Build outputs
+*.o
+*.out
+*.a
+*.so
+*.dylib
+*.exe
+
+*.dSYM/
