@@ -21,7 +21,9 @@ TEST_BINS = \
     tests/test_argparse \
     tests/test_output \
     tests/test_scan_controller \
+    tests/test_network \
     tests/test_main
+
 
 # --- Main program ---
 all: $(MAIN_BIN)
