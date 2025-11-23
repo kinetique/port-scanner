@@ -1,6 +1,7 @@
 #include "network.h"
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
@@ -8,7 +9,40 @@
 #include <arpa/inet.h>
 #include <sys/types.h>
 #include <sys/time.h>
+#include <pthread.h>
 
+typedef struct {
+    const char *ip;
+    int timeout_ms;
+    int *next_port;
+    int last_port;
+    port_result_t *results;
+    int start_port;
+    pthread_mutex_t *lock;
+} thread_context_t;
+
+static void *worker_thread(void *arg) {
+    thread_context_t *ctx = (thread_context_t *)arg;
+
+    while (1) {
+        int port;
+
+        pthread_mutex_lock(ctx->lock);
+        if (*ctx->next_port > ctx->last_port) {
+            pthread_mutex_unlock(ctx->lock);
+            break;
+        }
+        port = (*ctx->next_port)++;
+        pthread_mutex_unlock(ctx->lock);
+
+        port_result_t result = scan_port(ctx->ip, port, ctx->timeout_ms);
+
+        int index = port - ctx->start_port;
+        ctx->results[index] = result;
+    }
+
+    return NULL;
+}
 
 static int set_nonblocking(int sockfd) {
     int flags = fcntl(sockfd, F_GETFL, 0);
@@ -90,14 +124,57 @@ int scan_port_range(const char *ip,
                     int start_port,
                     int end_port,
                     int timeout_ms,
+                    int num_threads,
                     port_result_t *out_results)
 {
-    int total = 0;
+     int total_ports = end_port - start_port + 1;
 
-    for (int p = start_port; p <= end_port; p++) {
-        out_results[total] = scan_port(ip, p, timeout_ms);
-        total++;
+    if (num_threads <= 1) {
+        for (int p = start_port; p <= end_port; p++) {
+            out_results[p - start_port] = scan_port(ip, p, timeout_ms);
+        }
+        return total_ports;
     }
 
-    return total;
+    if (num_threads > total_ports) {
+        num_threads = total_ports;
+    }
+    if (num_threads > 2000) {
+        num_threads = 2000;
+    }
+
+    int next_port = start_port;
+    pthread_mutex_t port_lock = PTHREAD_MUTEX_INITIALIZER;
+
+    thread_context_t ctx = {
+        .ip = ip,
+        .timeout_ms = timeout_ms,
+        .next_port = &next_port,
+        .last_port = end_port,
+        .results = out_results,
+        .start_port = start_port,
+        .lock = &port_lock
+    };
+
+    pthread_t *threads = malloc(sizeof(pthread_t) * num_threads);
+    if (!threads) {
+        return -1;
+    }
+
+    for (int i = 0; i < num_threads; i++) {
+        if (pthread_create(&threads[i], NULL, worker_thread, &ctx) != 0) {
+            fprintf(stderr, "Warning: failed to create thread %d\n", i);
+            num_threads = i;
+            break;
+        }
+    }
+
+    for (int i = 0; i < num_threads; i++) {
+        pthread_join(threads[i], NULL);
+    }
+
+    free(threads);
+    pthread_mutex_destroy(&port_lock);
+
+    return total_ports;
 }

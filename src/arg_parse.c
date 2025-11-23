@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 static int parse_int(const char *s, int *out) {
     char *end;
@@ -158,7 +159,15 @@ int argparse_parse(struct argparse *self, int argc, const char **argv)
 
             /* Boolean option */
             if (opt->type == ARGPARSE_OPT_BOOLEAN) {
-                *(int *)opt->value = 1;
+                if (opt->value) { 
+                    *(int *)opt->value = 1;
+                }
+    
+                if (opt->callback) {
+                    opt->callback(self, opt);
+                    self->argv++; self->argc--;
+                    continue;
+                }
             }
             /* Integer */
             else if (opt->type == ARGPARSE_OPT_INTEGER) {
@@ -204,9 +213,6 @@ int argparse_parse(struct argparse *self, int argc, const char **argv)
                 }
             }
 
-            if (opt->callback)
-                opt->callback(self, opt);
-
             self->argv++; self->argc--;
             continue;
         }
@@ -222,7 +228,15 @@ int argparse_parse(struct argparse *self, int argc, const char **argv)
         const char *value = NULL;
 
         if (opt->type == ARGPARSE_OPT_BOOLEAN) {
-            *(int *)opt->value = 1;
+            if (opt->value) { 
+                *(int *)opt->value = 1;
+            }
+    
+            if (opt->callback) {
+                opt->callback(self, opt);
+                self->argv++; self->argc--;
+                continue;
+            }
         }
         else if (opt->type == ARGPARSE_OPT_INTEGER) {
             if (self->argc < 2) {
@@ -246,9 +260,7 @@ int argparse_parse(struct argparse *self, int argc, const char **argv)
             *(const char **)opt->value = value;
             self->argv++; self->argc--;
         }
-
         else if (opt->type == ARGPARSE_OPT_PORT_RANGE) {
-
             if (self->argc < 2) {
                 printf("Option -%c requires value like 1-100\n", short_name);
                 exit(1);
@@ -263,9 +275,6 @@ int argparse_parse(struct argparse *self, int argc, const char **argv)
             self->argv++; self->argc--;
         }
 
-        if (opt->callback)
-            opt->callback(self, opt);
-
         self->argv++; self->argc--;
     }
 
@@ -277,4 +286,3 @@ int argparse_parse(struct argparse *self, int argc, const char **argv)
 
     return self->cpidx;
 }
-

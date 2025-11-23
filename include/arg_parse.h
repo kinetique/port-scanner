@@ -2,6 +2,7 @@
 #define ARG_PARSE_H
 
 #include <stddef.h>
+#include <stdlib.h>
 
 #define ARGPARSE_OPT_BOOLEAN    0
 #define ARGPARSE_OPT_BIT        1

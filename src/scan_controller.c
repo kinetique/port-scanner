@@ -96,6 +96,9 @@ int run_scan(const scan_config_t *cfg) {
     }
 
     int timeout_ms = cfg->timeout_ms > 0 ? cfg->timeout_ms : 1000;
+    int thread_count = cfg->num_threads;
+    if (thread_count < 1) thread_count = 1;
+    if (thread_count > 2000) thread_count = 2000;
 
     /* Allocate result array */
     port_result_t *results = malloc(sizeof(port_result_t) * count);
@@ -105,7 +108,7 @@ int run_scan(const scan_config_t *cfg) {
     }
 
     /* Perform scan */
-    int scanned = scan_port_range(cfg->ip, start, end, timeout_ms, results);
+    int scanned = scan_port_range(cfg->ip, start, end, timeout_ms, thread_count, results);
     if (scanned <= 0) {
         fprintf(stderr, "Warning: scan_port_range returned %d\n", scanned);
         free(results);
