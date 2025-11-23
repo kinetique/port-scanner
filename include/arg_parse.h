@@ -1,6 +1,10 @@
 #ifndef ARG_PARSE_H
 #define ARG_PARSE_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stddef.h>
 #include <stdlib.h>
 
@@ -93,5 +97,9 @@ int argparse_help_cb_no_exit(struct argparse *self,
 
 int argparse_help_cb(struct argparse *self,
                      const struct argparse_option *option);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // ARG_PARSE_H 

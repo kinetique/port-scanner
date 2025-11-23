@@ -4,7 +4,7 @@
 #include "arg_parse.h"
 #include "scan_controller.h"
 
-int main(int argc, const char **argv) {
+int app_main(int argc, const char **argv) {
     const char *ip = NULL;
     int port = 0;
     int range = 0;
@@ -84,3 +84,9 @@ int main(int argc, const char **argv) {
 
     return 0;
 }
+
+#ifndef TESTING
+int main(int argc, const char **argv) {
+    return app_main(argc, argv);
+}
+#endif

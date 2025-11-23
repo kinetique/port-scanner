@@ -3,6 +3,10 @@
 
 #include "network.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct {
     const char *ip;      ///< Target IP address (IPv4 string)
     int port;           ///< Single port to scan
@@ -19,5 +23,9 @@ typedef struct {
 #define SCAN_ERR_ALLOC         3  ///< Memory allocation failure during scan
 
 int run_scan(const scan_config_t *cfg);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // SCAN_CONTROLLER_H
