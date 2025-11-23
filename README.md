@@ -52,14 +52,25 @@ make
 
 ### Run the scanner
 
+#### Scan the single port:
+
 ```bash
-./port_scanner <ip> <start_port> <end_port> [--timeout ms] [--verbose]
+./port_scanner --ip <ip> --port <port> [--timeout ms] [--verbose]
 ```
 
+#### Scan the range of ports:
+
+```bash
+./port_scanner --ip <ip> --port <start_port> --range <count> [--timeout ms] [--verbose]
+```
 **Example:**
 
 ```bash
-./port_scanner 192.168.1.1 20 80 --timeout 1000 --verbose
+# Scan single port 80
+./port_scanner --ip 192.168.1.1 --port 80 --timeout 1000 --verbose
+
+# Scan 50 ports starting from port 20 (ports 20-69)
+./port_scanner --ip 192.168.1.1 --port 20 --range 50 --timeout 1000 --verbose
 ```
 
 ---
