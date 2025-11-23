@@ -6,33 +6,35 @@
 
 /* Validate scan settings */
 static int validate_config(const scan_config_t *cfg) {
-    if (cfg == NULL) {
+    if (!cfg) {
         fprintf(stderr, "Error: NULL config\n");
         return 0;
     }
 
-    if (cfg->ip == NULL || cfg->ip[0] == '\0') {
-        fprintf(stderr, "Error: IP address is not set\n");
+    if (!cfg->ip || cfg->ip[0] == '\0') {
+        fprintf(stderr, "Error: IP address not set\n");
         return 0;
     }
 
-    /* Port range checks */
-    if (cfg->start_port < 1 || cfg->start_port > 65535) {
-        fprintf(stderr, "Error: invalid start port: %d\n", cfg->start_port);
-        return 0;
-    }
-    if (cfg->end_port < 1 || cfg->end_port > 65535) {
-        fprintf(stderr, "Error: invalid end port: %d\n", cfg->end_port);
-        return 0;
-    }
-    if (cfg->start_port > cfg->end_port) {
-        fprintf(stderr, "Error: start port must be <= end port\n");
+    if (cfg->port < 1 || cfg->port > 65535) {
+        fprintf(stderr, "Error: invalid port: %d\n", cfg->port);
         return 0;
     }
 
-    /* Timeout check */
+    if (cfg->range < 0) {
+        fprintf(stderr, "Error: invalid range: %d (must be >=1)\n", cfg->range);
+        return 0;
+    }
+
+    long end_port = (long)cfg->port + (cfg->range > 0 ? (cfg->range - 1) : 0);
+
+    if (end_port > 65535) {
+        fprintf(stderr, "Error: port + range exceeds 65535\n");
+        return 0;
+    }
+
     if (cfg->timeout_ms < 0) {
-        fprintf(stderr, "Error: timeout must be >= 0\n");
+        fprintf(stderr, "Error: timeout must be >=0\n");
         return 0;
     }
 
@@ -53,16 +55,19 @@ static const char *port_status_to_string(int status) {
 
 /* Print scan results */
 static void print_results(const port_result_t *results, int count, const scan_config_t *cfg) {
+    int start = cfg->port;
+    int end = cfg->port + cfg->range - 1;
+    
     if (cfg->verbose) {
-        int ports_count = cfg->end_port - cfg->start_port + 1;
+        int ports_count = end - start + 1;
         int timeout_ms = cfg->timeout_ms > 0 ? cfg->timeout_ms : 1000;
 
         printf("Scanning %s, ports %d-%d (%d ports), timeout %d ms\n",
-               cfg->ip,
-               cfg->start_port,
-               cfg->end_port,
-               ports_count,
-               timeout_ms);
+                cfg->ip,
+                start,
+                end,
+                ports_count,
+                timeout_ms);
 
         printf("---------------------------------------------\n");
     }
@@ -81,8 +86,8 @@ int run_scan(const scan_config_t *cfg) {
         return SCAN_ERR_INVALID_ARGS;
     }
 
-    int start = cfg->start_port;
-    int end = cfg->end_port;
+    int start = cfg->port;
+    int end = cfg->port + (cfg->range > 0 ? (cfg->range - 1) : 0);
     int count = end - start + 1;
 
     if (count <= 0) {
@@ -91,6 +96,9 @@ int run_scan(const scan_config_t *cfg) {
     }
 
     int timeout_ms = cfg->timeout_ms > 0 ? cfg->timeout_ms : 1000;
+    int thread_count = cfg->num_threads;
+    if (thread_count < 1) thread_count = 1;
+    if (thread_count > 2000) thread_count = 2000;
 
     /* Allocate result array */
     port_result_t *results = malloc(sizeof(port_result_t) * count);
@@ -100,7 +108,7 @@ int run_scan(const scan_config_t *cfg) {
     }
 
     /* Perform scan */
-    int scanned = scan_port_range(cfg->ip, start, end, timeout_ms, results);
+    int scanned = scan_port_range(cfg->ip, start, end, timeout_ms, thread_count, results);
     if (scanned <= 0) {
         fprintf(stderr, "Warning: scan_port_range returned %d\n", scanned);
         free(results);

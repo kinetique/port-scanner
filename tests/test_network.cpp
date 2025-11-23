@@ -1,13 +1,12 @@
-#include <stdio.h>
-#include <assert.h>
-#include <string.h>
+#include <gtest/gtest.h>
+#include <pthread.h>
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
-#include <pthread.h>
 
 #include "network.h"
 
+// TCP test server
 static void *test_tcp_server(void *arg) {
     int port = *(int *)arg;
 
@@ -32,70 +31,53 @@ static void *test_tcp_server(void *arg) {
         pthread_exit(NULL);
     }
 
-    /* Keep server alive for test duration */
     sleep(2);
 
     close(server_fd);
     pthread_exit(NULL);
-}----------------- */
+}
 
-static void test_open_port() {
-    printf("[TEST] scan_port(): open port\n");
-
+TEST(NetworkTest, OpenPort) {
     int test_port = 50505;
     pthread_t th;
     pthread_create(&th, NULL, test_tcp_server, &test_port);
-    usleep(200 * 1000); // wait server startup
+    usleep(200 * 1000); 
 
     port_result_t r = scan_port("127.0.0.1", test_port, 500);
 
-    assert(r.port == test_port);
-    assert(r.status == PORT_OPEN);
+    EXPECT_EQ(r.port, test_port);
+    EXPECT_EQ(r.status, PORT_OPEN);
 
     pthread_join(th, NULL);
-    printf("   OK\n");
 }
 
-static void test_closed_port() {
-    printf("[TEST] scan_port(): closed port\n");
-
+TEST(NetworkTest, ClosedPort) {
     int test_port = 50506; // nothing listens
 
     port_result_t r = scan_port("127.0.0.1", test_port, 300);
 
-    assert(r.port == test_port);
-    assert(r.status == PORT_CLOSED || r.status == PORT_FILTERED);
-
-    printf("   OK\n");
+    EXPECT_EQ(r.port, test_port);
+    EXPECT_TRUE(r.status == PORT_CLOSED || r.status == PORT_FILTERED);
 }
 
-static void test_range_scan() {
-    printf("[TEST] scan_port_range(): basic range test\n");
-
+TEST(NetworkTest, RangeScan) {
     port_result_t results[10];
-    int count = scan_port_range("127.0.0.1", 50000, 50005, 300, results);
+    int max_threads = 4; 
+    int count = scan_port_range("127.0.0.1", 50000, 50005, 300, max_threads, results);
 
-    assert(count == 6);
+    EXPECT_EQ(count, 6);
 
     for (int i = 0; i < count; i++) {
-        assert(results[i].port >= 50000);
-        assert(results[i].port <= 50005);
-
-        assert(results[i].status == PORT_OPEN ||
-               results[i].status == PORT_CLOSED ||
-               results[i].status == PORT_FILTERED);
+        EXPECT_GE(results[i].port, 50000);
+        EXPECT_LE(results[i].port, 50005);
+        EXPECT_TRUE(results[i].status == PORT_OPEN ||
+                    results[i].status == PORT_CLOSED ||
+                    results[i].status == PORT_FILTERED);
     }
-
-    printf("   OK\n");
 }
 
-int main() {
-    printf("Running network tests...\n\n");
 
-    test_open_port();
-    test_closed_port();
-    test_range_scan();
-
-    printf("\nAll tests passed!\n");
-    return 0;
+int main(int argc, char **argv) {
+    ::testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
 }

@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 static int parse_int(const char *s, int *out) {
     char *end;
@@ -10,6 +11,18 @@ static int parse_int(const char *s, int *out) {
         return -1;
     *out = (int)v;
     return 0;
+}
+
+static int parse_port_range(const char *s, struct port_range *out) {
+    int a, b;
+    if (sscanf(s, "%d-%d", &a, &b) == 2) {
+        if (a >= 0 && b >= a && b <= 65535) {
+            out->start = a;
+            out->end = b;
+            return 0;
+        }
+    }
+    return -1;
 }
 
 static struct argparse_option *find_option(struct argparse *self,
@@ -146,7 +159,15 @@ int argparse_parse(struct argparse *self, int argc, const char **argv)
 
             /* Boolean option */
             if (opt->type == ARGPARSE_OPT_BOOLEAN) {
-                *(int *)opt->value = 1;
+                if (opt->value) { 
+                    *(int *)opt->value = 1;
+                }
+    
+                if (opt->callback) {
+                    opt->callback(self, opt);
+                    self->argv++; self->argc--;
+                    continue;
+                }
             }
             /* Integer */
             else if (opt->type == ARGPARSE_OPT_INTEGER) {
@@ -175,9 +196,22 @@ int argparse_parse(struct argparse *self, int argc, const char **argv)
                 }
                 *(const char **)opt->value = value;
             }
+            /* Port range */
+            else if (opt->type == ARGPARSE_OPT_PORT_RANGE) {
+                if (!value) {
+                    if (self->argc < 2) {
+                        printf("Option --%s requires value (example: 1-100)\n", name);
+                        exit(1);
+                    }
+                    value = self->argv[1];
+                    self->argv++; self->argc--;
+                }
 
-            if (opt->callback)
-                opt->callback(self, opt);
+                if (parse_port_range(value, (struct port_range *)opt->value) != 0) {
+                    printf("Invalid port range for --%s. Use format a-b\n", name);
+                    exit(1);
+                }
+            }
 
             self->argv++; self->argc--;
             continue;
@@ -194,7 +228,15 @@ int argparse_parse(struct argparse *self, int argc, const char **argv)
         const char *value = NULL;
 
         if (opt->type == ARGPARSE_OPT_BOOLEAN) {
-            *(int *)opt->value = 1;
+            if (opt->value) { 
+                *(int *)opt->value = 1;
+            }
+    
+            if (opt->callback) {
+                opt->callback(self, opt);
+                self->argv++; self->argc--;
+                continue;
+            }
         }
         else if (opt->type == ARGPARSE_OPT_INTEGER) {
             if (self->argc < 2) {
@@ -218,9 +260,20 @@ int argparse_parse(struct argparse *self, int argc, const char **argv)
             *(const char **)opt->value = value;
             self->argv++; self->argc--;
         }
+        else if (opt->type == ARGPARSE_OPT_PORT_RANGE) {
+            if (self->argc < 2) {
+                printf("Option -%c requires value like 1-100\n", short_name);
+                exit(1);
+            }
 
-        if (opt->callback)
-            opt->callback(self, opt);
+            value = self->argv[1];
+            if (parse_port_range(value, (struct port_range *)opt->value) != 0) {
+                printf("Invalid port range for -%c (expected a-b)\n", short_name);
+                exit(1);
+            }
+
+            self->argv++; self->argc--;
+        }
 
         self->argv++; self->argc--;
     }
@@ -233,4 +286,3 @@ int argparse_parse(struct argparse *self, int argc, const char **argv)
 
     return self->cpidx;
 }
-

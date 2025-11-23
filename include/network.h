@@ -46,6 +46,7 @@ int scan_port_range(const char *ip,
                     int start_port,
                     int end_port,
                     int timeout_ms,
+                    int num_threads,
                     port_result_t *out_results);
 
 #ifdef __cplusplus
