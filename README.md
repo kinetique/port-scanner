@@ -61,7 +61,7 @@ make
 #### Scan the range of ports:
 
 ```bash
-./port_scanner --ip <ip> --port <start_port> --range <count> [--timeout ms] [--verbose]
+./port_scanner --ip <ip> --port <start_port> --range <count> [--timeout ms] [--threads <num>] [--verbose]
 ```
 **Example:**
 
@@ -71,6 +71,9 @@ make
 
 # Scan 50 ports starting from port 20 (ports 20-69)
 ./port_scanner --ip 192.168.1.1 --port 20 --range 50 --timeout 1000 --verbose
+
+# Scan with 10 threads for faster execution
+./port_scanner --ip 192.168.1.1 --port 20 --range 100 --threads 10 --timeout 1000
 ```
 
 ---
