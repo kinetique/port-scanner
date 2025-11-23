@@ -3,12 +3,13 @@
 
 #include <stddef.h>
 
-#define ARGPARSE_OPT_BOOLEAN  0
-#define ARGPARSE_OPT_BIT      1
-#define ARGPARSE_OPT_STRING   2
-#define ARGPARSE_OPT_INTEGER  3   
-#define ARGPARSE_OPT_GROUP    4
-#define ARGPARSE_OPT_END      5
+#define ARGPARSE_OPT_BOOLEAN    0
+#define ARGPARSE_OPT_BIT        1
+#define ARGPARSE_OPT_STRING     2
+#define ARGPARSE_OPT_INTEGER    3   
+#define ARGPARSE_OPT_PORT_RANGE 4
+#define ARGPARSE_OPT_GROUP      5
+#define ARGPARSE_OPT_END        6
 
 #define ARGPARSE_OPT_NONEG (1 << 0)
 
@@ -47,6 +48,11 @@ struct argparse {
     const char *optvalue;
 };
 
+struct port_range {
+    int start;
+    int end;
+};
+
 #define OPT_BOOLEAN(s,l,ptr,help_text) \
     { (s), (l), (void *)(ptr), ARGPARSE_OPT_BOOLEAN, 0, (help_text), 0, NULL }
 
@@ -59,11 +65,17 @@ struct argparse {
 #define OPT_INTEGER(s,l,ptr,help_text) \
     { (s), (l), (void *)(ptr), ARGPARSE_OPT_INTEGER, 0, (help_text), 0, NULL }
 
+#define OPT_PORT_RANGE(s,l,ptr,help_text) \
+    { (s), (l), (void *)(ptr), ARGPARSE_OPT_PORT_RANGE, 0, (help_text), 0, NULL }
+
 #define OPT_GROUP(help_text) \
     { 0, NULL, NULL, ARGPARSE_OPT_GROUP, 0, (help_text), 0, NULL }
 
 #define OPT_CUSTOM(s,l,ptr,type_,data_,help_,flags_,cb_) \
     { (s), (l), (void *)(ptr), (type_), (data_), (help_), (flags_), (cb_) }
+
+#define OPT_END() \
+    { 0, NULL, NULL, ARGPARSE_OPT_END, 0, NULL, 0, NULL }
 
 int argparse_init(struct argparse *self, struct argparse_option *options,
                   const char *const *usages, int flags);

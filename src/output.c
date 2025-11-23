@@ -20,14 +20,17 @@ void print_scan_output(const port_result_t *results,
         return; /* simple safety check */
     }
 
+    int start = cfg->port;
+    int end = cfg->port + (cfg->range > 0 ? cfg->range - 1 : 0);
+
     if (cfg->verbose) {
-        int ports_count = cfg->end_port - cfg->start_port + 1;
+        int ports_count = end - start + 1;
         int timeout_ms = cfg->timeout_ms > 0 ? cfg->timeout_ms : 1000;
 
         printf("Scanning %s, ports %d-%d (%d ports), timeout %d ms\n",
                cfg->ip,
-               cfg->start_port,
-               cfg->end_port,
+               start,
+               end,
                ports_count,
                timeout_ms);
 
