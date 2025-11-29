@@ -41,6 +41,18 @@ The implementation focuses on:
 - Small set of unit tests for controller and output modules
 
 ---
+## How to set up 
+```
+git clone https://github.com/kinetique/port-scanner.git
+```
+
+```
+cd port-scanner
+```
+### Install dependencies
+```
+sudo apt install gcc make
+```
 
 ## How to Build & Run
 
@@ -55,25 +67,25 @@ make
 #### Scan the single port:
 
 ```bash
-./port_scanner --ip <ip> --port <port> [--timeout ms] [--verbose]
+./portscan --ip <ip> --port <port> [--timeout ms] [--verbose]
 ```
 
 #### Scan the range of ports:
 
 ```bash
-./port_scanner --ip <ip> --port <start_port> --range <count> [--timeout ms] [--threads <num>] [--verbose]
+./portscan --ip <ip> --port <start_port> --range <count> [--timeout ms] [--threads <num>] [--verbose]
 ```
 **Example:**
 
 ```bash
 # Scan single port 80
-./port_scanner --ip 192.168.1.1 --port 80 --timeout 1000 --verbose
+./portscan --ip 192.168.1.1 --port 80 --timeout 1000 --verbose
 
 # Scan 50 ports starting from port 20 (ports 20-69)
-./port_scanner --ip 192.168.1.1 --port 20 --range 50 --timeout 1000 --verbose
+./portscan --ip 192.168.1.1 --port 20 --range 50 --timeout 1000 --verbose
 
 # Scan with 10 threads for faster execution
-./port_scanner --ip 192.168.1.1 --port 20 --range 100 --threads 10 --timeout 1000
+./portscan --ip 192.168.1.1 --port 20 --range 100 --threads 10 --timeout 1000
 ```
 
 ---
@@ -82,8 +94,6 @@ make
 
 ```text
 port-scanner/
-├── demo/
-│   └── demo_scanner.c          # Optional demo files / examples
 ├── include/                    # Header files (public API of modules)
 │   ├── arg_parse.h
 │   ├── network.h
@@ -122,7 +132,7 @@ port-scanner/
 To run tests, execute:
 
 ```bash
-make test
+make tests
 ```
 
 Tests verify the correctness of core modules and error handling.
